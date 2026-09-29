@@ -503,52 +503,9 @@ function closeIncidentModal(e) {
   if (e.target.id === "incident-modal") hideIncidentModal();
 }
 
-/* ----------------------------------------------------
-   10. Incident Copilot Chat
----------------------------------------------------- */
-async function handleChatSubmit(e) {
-  e.preventDefault();
-  const input = document.getElementById("chat-input");
-  const query = input.value.trim();
-  if (!query) return;
 
-  appendChatMessage("user", query);
-  input.value = "";
 
-  try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: query,
-        current_postmortem: activePostmortemData
-      })
-    });
 
-    const data = await res.json();
-    appendChatMessage("bot", data.answer);
-  } catch (err) {
-    appendChatMessage("bot", `Sorry, I encountered an error: ${err.message}`);
-  }
-}
-
-function sendPrompt(text) {
-  document.getElementById("chat-input").value = text;
-  document.getElementById("chat-form").dispatchEvent(new Event("submit"));
-}
-
-function appendChatMessage(sender, text) {
-  const messagesContainer = document.getElementById("chat-messages");
-  const icon = sender === "user" ? "fa-user" : "fa-robot";
-
-  messagesContainer.innerHTML += `
-    <div class="chat-bubble ${sender}">
-      <div class="bubble-icon"><i class="fa-solid ${icon}"></i></div>
-      <div class="bubble-content"><p>${text.replace(/\n/g, "<br>")}</p></div>
-    </div>
-  `;
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
 
 /* ----------------------------------------------------
    11. Markdown Exporter & Toast Helper

@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Postmortem AI - Root Cause Analysis & Hindsight Memory Platform</title>
-  
+
   <!-- Google Fonts & Font Awesome Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="app-container">
     <!-- Top Navigation Header -->
@@ -57,9 +61,7 @@
       <button class="nav-btn" data-tab="explorer">
         <i class="fa-solid fa-brain"></i> Hindsight Memory Bank
       </button>
-      <button class="nav-btn" data-tab="copilot">
-        <i class="fa-solid fa-robot"></i> Incident Copilot
-      </button>
+
     </nav>
 
     <!-- Main Content Body -->
@@ -72,7 +74,8 @@
           <div class="card form-card">
             <div class="card-header">
               <h2><i class="fa-solid fa-file-circle-plus"></i> New Incident Report</h2>
-              <span class="help-text">Input raw alerts, logs or symptoms to trigger AI analysis with Hindsight memory grounding</span>
+              <span class="help-text">Input raw alerts, logs or symptoms to trigger AI analysis with Hindsight memory
+                grounding</span>
             </div>
 
             <!-- Quick Scenario Presets -->
@@ -104,18 +107,23 @@
               </div>
 
               <div class="form-group">
-                <label for="affected-component"><i class="fa-solid fa-cubes"></i> Affected Component / Microservice</label>
-                <input type="text" id="affected-component" placeholder="e.g. Checkout Microservice, Redis Auth Cache" required>
+                <label for="affected-component"><i class="fa-solid fa-cubes"></i> Affected Component /
+                  Microservice</label>
+                <input type="text" id="affected-component" placeholder="e.g. Checkout Microservice, Redis Auth Cache"
+                  required>
               </div>
 
               <div class="form-group">
                 <label for="description"><i class="fa-solid fa-align-left"></i> Incident Description & Symptoms</label>
-                <textarea id="description" rows="3" placeholder="Describe user symptoms, alert notifications, and observed degradation..." required></textarea>
+                <textarea id="description" rows="3"
+                  placeholder="Describe user symptoms, alert notifications, and observed degradation..."
+                  required></textarea>
               </div>
 
               <div class="form-group">
                 <label for="logs"><i class="fa-solid fa-terminal"></i> Logs / Stack Trace / Alert Context</label>
-                <textarea id="logs" rows="4" class="code-font" placeholder="Paste server logs, error stack traces, Datadog alerts..." required></textarea>
+                <textarea id="logs" rows="4" class="code-font"
+                  placeholder="Paste server logs, error stack traces, Datadog alerts..." required></textarea>
               </div>
 
               <div class="form-actions">
@@ -174,7 +182,8 @@
                 <!-- Zero Matches Baseline Banner if applicable -->
                 <div class="zero-match-banner" id="zero-match-banner" style="display: none;">
                   <i class="fa-solid fa-circle-info"></i>
-                  <span><strong>0 Relevant Past Memories Found:</strong> Storing this incident as a new baseline memory in Hindsight.</span>
+                  <span><strong>0 Relevant Past Memories Found:</strong> Storing this incident as a new baseline memory
+                    in Hindsight.</span>
                 </div>
 
                 <!-- Executive Summary -->
@@ -257,8 +266,9 @@
                 <!-- Continuous Learning Loop Feedback Widget -->
                 <div class="report-section learning-loop-card" id="learning-loop-widget">
                   <h3><i class="fa-solid fa-rotate"></i> Continuous Learning Loop (Commit to Hindsight)</h3>
-                  <p class="section-desc">Verify this resolution to permanently commit it to the Hindsight Memory Bank for future incident agents.</p>
-                  
+                  <p class="section-desc">Verify this resolution to permanently commit it to the Hindsight Memory Bank
+                    for future incident agents.</p>
+
                   <div class="feedback-options">
                     <button class="feedback-btn active" id="btn-fix-yes" onclick="setFeedbackStatus(true)">
                       <i class="fa-solid fa-circle-check"></i> Yes, Resolution Verified
@@ -270,7 +280,8 @@
 
                   <div class="custom-fix-area" id="custom-fix-container" style="display: none;">
                     <label for="custom-fix-input">Enter Custom Patch / Runbook Command:</label>
-                    <textarea id="custom-fix-input" rows="2" placeholder="e.g. Scaled PgBouncer connection limit to 500 and enabled 3s socket timeouts in production."></textarea>
+                    <textarea id="custom-fix-input" rows="2"
+                      placeholder="e.g. Scaled PgBouncer connection limit to 500 and enabled 3s socket timeouts in production."></textarea>
                   </div>
 
                   <button class="btn btn-emerald" onclick="commitResolutionToHindsight()">
@@ -281,14 +292,15 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Empty State placeholder before submission -->
           <div class="empty-state-card" id="empty-state">
             <div class="empty-icon">
               <i class="fa-solid fa-brain"></i>
             </div>
             <h3>Ready for Hindsight Incident Analysis</h3>
-            <p>Fill out the incident form or select a quick preset scenario above. Toggle <strong>Hindsight Memory Mode</strong> in the header to compare memory-grounded fixes against generic LLM output.</p>
+            <p>Fill out the incident form or select a quick preset scenario above. Toggle <strong>Hindsight Memory
+                Mode</strong> in the header to compare memory-grounded fixes against generic LLM output.</p>
           </div>
 
         </div>
@@ -300,7 +312,9 @@
           <div class="explorer-header card">
             <div class="search-bar">
               <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="memory-search-input" placeholder="Search past incidents by keyword, tag (e.g. postgresql, oom, dns)..." oninput="handleMemorySearch()">
+              <input type="text" id="memory-search-input"
+                placeholder="Search past incidents by keyword, tag (e.g. postgresql, oom, dns)..."
+                oninput="handleMemorySearch()">
             </div>
             <div class="tags-filter" id="memory-tags-filter">
               <button class="tag-filter-btn active" onclick="filterByTag('all')">All</button>
@@ -334,22 +348,29 @@
 
             <div class="chat-suggestions">
               <span class="sugg-title">Suggested Prompts:</span>
-              <button class="sugg-btn" onclick="sendPrompt('Draft a Slack announcement for this incident')">📢 Draft Slack Incident Update</button>
-              <button class="sugg-btn" onclick="sendPrompt('How do we prevent DB connection pool exhaustion?')">🛡️ Prevent Connection Exhaustion</button>
-              <button class="sugg-btn" onclick="sendPrompt('What alert thresholds should we configure in Datadog?')">📊 Datadog Alert Thresholds</button>
+              <button class="sugg-btn" onclick="sendPrompt('Draft a Slack announcement for this incident')">📢 Draft
+                Slack Incident Update</button>
+              <button class="sugg-btn" onclick="sendPrompt('How do we prevent DB connection pool exhaustion?')">🛡️
+                Prevent Connection Exhaustion</button>
+              <button class="sugg-btn" onclick="sendPrompt('What alert thresholds should we configure in Datadog?')">📊
+                Datadog Alert Thresholds</button>
             </div>
 
             <div class="chat-messages" id="chat-messages">
               <div class="chat-bubble bot">
                 <div class="bubble-icon"><i class="fa-solid fa-robot"></i></div>
                 <div class="bubble-content">
-                  <p>Hello! I'm <strong>Postmortem AI Copilot</strong>. I have access to your historical incident memory bank and active postmortem analysis. How can I help you remediate or document this incident today?</p>
+                  <p>Hello! I'm <strong>Postmortem AI Copilot</strong>. I have access to your historical incident memory
+                    bank and active postmortem analysis. How can I help you remediate or document this incident today?
+                  </p>
                 </div>
               </div>
             </div>
 
             <form id="chat-form" class="chat-input-area" onsubmit="handleChatSubmit(event)">
-              <input type="text" id="chat-input" placeholder="Ask questions about incident prevention, configuration fixes, or communications..." required autocomplete="off">
+              <input type="text" id="chat-input"
+                placeholder="Ask questions about incident prevention, configuration fixes, or communications..."
+                required autocomplete="off">
               <button type="submit" class="btn btn-primary" id="btn-chat-send">
                 <i class="fa-solid fa-paper-plane"></i>
               </button>
@@ -392,7 +413,8 @@
 
         <!-- Raw Retrieved Memory Nodes -->
         <div class="inspector-box">
-          <h4><i class="fa-solid fa-layer-group"></i> Retrieved Memory Nodes (<span id="inspector-nodes-count">0</span>)</h4>
+          <h4><i class="fa-solid fa-layer-group"></i> Retrieved Memory Nodes (<span id="inspector-nodes-count">0</span>)
+          </h4>
           <div class="nodes-list" id="inspector-nodes-list">
             <!-- Dynamic memory nodes -->
           </div>
@@ -424,4 +446,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
