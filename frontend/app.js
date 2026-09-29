@@ -4,7 +4,7 @@
  * Before vs After Memory Toggle, and Continuous Learning Loop Feedback.
  */
 
-const API_BASE = "";
+const API_BASE = "https://postmortem-ai-backend.onrender.com";
 
 // Global State
 let activePostmortemData = null;
@@ -26,10 +26,10 @@ async function checkBackendHealth() {
   try {
     const res = await fetch(`${API_BASE}/api/health`);
     const data = await res.json();
-    
+
     const engineText = document.getElementById("engine-text");
     const memoryCountText = document.getElementById("memory-count-text");
-    
+
     if (data.status === "healthy") {
       engineText.textContent = data.engine_mode;
       memoryCountText.textContent = `${data.hindsight_memory_bank_count} Historical Memories`;
@@ -49,7 +49,7 @@ function initTabs() {
     btn.addEventListener("click", () => {
       navBtns.forEach(b => b.classList.remove("active"));
       document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-      
+
       btn.classList.add("active");
       const tabId = `tab-${btn.dataset.tab}`;
       document.getElementById(tabId).classList.add("active");
@@ -63,7 +63,7 @@ function initTabs() {
 function toggleMemoryMode() {
   const toggleInput = document.getElementById("toggle-memory-mode");
   const statusText = document.getElementById("toggle-status-text");
-  
+
   isMemoryModeActive = toggleInput.checked;
   if (isMemoryModeActive) {
     statusText.textContent = "🧠 Grounded (With Memory)";
@@ -113,7 +113,7 @@ const PRESETS = {
 function loadPreset(key) {
   const data = PRESETS[key];
   if (!data) return;
-  
+
   document.getElementById("title").value = data.title;
   document.getElementById("severity").value = data.severity;
   document.getElementById("affected-component").value = data.component;
@@ -128,12 +128,12 @@ function loadPreset(key) {
 ---------------------------------------------------- */
 async function handleAnalyzeSubmit(e) {
   e.preventDefault();
-  
+
   const submitBtn = document.getElementById("btn-submit-analyze");
   const skeletonLoader = document.getElementById("skeleton-loader");
   const reportOutput = document.getElementById("report-output");
   const emptyState = document.getElementById("empty-state");
-  
+
   const payload = {
     title: document.getElementById("title").value,
     severity: document.getElementById("severity").value,
@@ -156,14 +156,14 @@ async function handleAnalyzeSubmit(e) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    
+
     if (!res.ok) throw new Error(`API returned status ${res.status}`);
-    
+
     const data = await res.json();
     activePostmortemData = data;
-    
+
     renderPostmortemReport(data);
-    
+
     skeletonLoader.style.display = "none";
     reportOutput.style.display = "block";
     showToast("Postmortem generated successfully!", "success");
@@ -185,11 +185,11 @@ async function handleAnalyzeSubmit(e) {
 function renderPostmortemReport(data) {
   document.getElementById("report-title").textContent = data.title;
   document.getElementById("report-id").textContent = data.incident_id || "INC-2026-AUTO";
-  
+
   const sevBadge = document.getElementById("report-sev");
   sevBadge.textContent = data.severity;
   sevBadge.className = `severity-badge ${data.severity}`;
-  
+
   // Render Improvement Delta Badge
   const deltaBadge = document.getElementById("delta-badge");
   if (data.memory_grounded && data.hindsight_inspector_metadata) {
@@ -235,7 +235,7 @@ function renderPostmortemReport(data) {
 
   // Root Cause & 5 Whys
   document.getElementById("report-rca").textContent = data.root_cause_analysis;
-  
+
   const whysList = document.getElementById("report-5whys");
   whysList.innerHTML = "";
   (data.five_whys || []).forEach(why => {
@@ -286,7 +286,7 @@ function openInspectorDrawer() {
   }
 
   const meta = activePostmortemData.hindsight_inspector_metadata;
-  
+
   // Set query text & vector signature
   document.getElementById("inspector-query-text").textContent = meta.exact_query;
   document.getElementById("inspector-vector-sig").textContent = JSON.stringify(meta.query_vector_preview || []);
@@ -295,7 +295,7 @@ function openInspectorDrawer() {
   const entitiesContainer = document.getElementById("inspector-entities");
   entitiesContainer.innerHTML = "";
   const ent = meta.extracted_entities || {};
-  
+
   if (ent.primary_component) {
     entitiesContainer.innerHTML += `<span class="entity-badge">component: ${ent.primary_component}</span>`;
   }
@@ -312,7 +312,7 @@ function openInspectorDrawer() {
   const nodesContainer = document.getElementById("inspector-nodes-list");
   document.getElementById("inspector-nodes-count").textContent = meta.retrieved_nodes_count || 0;
   nodesContainer.innerHTML = "";
-  
+
   if (meta.retrieved_nodes && meta.retrieved_nodes.length > 0) {
     meta.retrieved_nodes.forEach(node => {
       nodesContainer.innerHTML += `
@@ -365,7 +365,7 @@ async function commitResolutionToHindsight() {
     return;
   }
 
-  const customFix = !isFeedbackYes 
+  const customFix = !isFeedbackYes
     ? document.getElementById("custom-fix-input").value || "Applied custom field mitigation"
     : activePostmortemData.action_items[0]?.task || "Applied verified resolution";
 
@@ -524,7 +524,7 @@ async function handleChatSubmit(e) {
         current_postmortem: activePostmortemData
       })
     });
-    
+
     const data = await res.json();
     appendChatMessage("bot", data.answer);
   } catch (err) {
@@ -540,7 +540,7 @@ function sendPrompt(text) {
 function appendChatMessage(sender, text) {
   const messagesContainer = document.getElementById("chat-messages");
   const icon = sender === "user" ? "fa-user" : "fa-robot";
-  
+
   messagesContainer.innerHTML += `
     <div class="chat-bubble ${sender}">
       <div class="bubble-icon"><i class="fa-solid ${icon}"></i></div>
@@ -595,9 +595,9 @@ function showToast(msg, type = "info") {
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   const icon = type === "success" ? "fa-circle-check" : type === "error" ? "fa-circle-xmark" : "fa-circle-info";
-  
+
   toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
   container.appendChild(toast);
-  
+
   setTimeout(() => toast.remove(), 4000);
 }
