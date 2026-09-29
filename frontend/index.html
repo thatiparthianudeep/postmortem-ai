@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postmortem AI - Root Cause Analysis & Hindsight Memory Platform</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="brand-text">
+          <span class="logo-title">Postmortem <span class="gradient-text">AI</span></span>
+          <span class="logo-subtitle">Hindsight Memory Engine & Agentic RCA</span>
+        </div>
+      </div>
+
+      <!-- Before vs After Dual-Mode Toggle -->
+      <div class="memory-toggle-container">
+        <span class="toggle-label"><i class="fa-solid fa-brain"></i> Memory Mode:</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-memory-mode" checked onchange="toggleMemoryMode()">
+          <span class="slider round"></span>
+        </label>
+        <span class="toggle-status-text" id="toggle-status-text">🧠 Grounded (With Memory)</span>
+      </div>
+
+      <div class="header-status">
+        <div class="status-badge" id="engine-status">
+          <span class="status-dot green"></span>
+          <span id="engine-text">Connecting to Engine...</span>
+        </div>
+        <div class="status-badge memory-count-badge" id="memory-status">
+          <i class="fa-solid fa-database"></i>
+          <span id="memory-count-text">6 Historical Memories</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="subnav">
+      <button class="nav-btn active" data-tab="studio">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Postmortem Studio
+      </button>
+      <button class="nav-btn" data-tab="explorer">
+        <i class="fa-solid fa-brain"></i> Hindsight Memory Bank
+      </button>
+      <button class="nav-btn" data-tab="copilot">
+        <i class="fa-solid fa-robot"></i> Incident Copilot
+      </button>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="content-area">
+
+      <!-- TAB 1: POSTMORTEM STUDIO -->
+      <section id="tab-studio" class="tab-content active">
+        <div class="studio-grid">
+          <!-- Incident Input Form -->
+          <div class="card form-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-file-circle-plus"></i> New Incident Report</h2>
+              <span class="help-text">Input raw alerts, logs or symptoms to trigger AI analysis with Hindsight memory grounding</span>
+            </div>
+
+            <!-- Quick Scenario Presets -->
+            <div class="presets-container">
+              <span class="preset-label">Quick Presets:</span>
+              <div class="preset-chips">
+                <button class="chip" onclick="loadPreset('db_pool')">⚡ DB Pool Exhaustion</button>
+                <button class="chip" onclick="loadPreset('jwt_oom')">🧠 JWT Memory Leak</button>
+                <button class="chip" onclick="loadPreset('stripe_race')">💳 Stripe Webhook Race</button>
+                <button class="chip" onclick="loadPreset('kafka_lag')">📡 Kafka Schema Lag</button>
+              </div>
+            </div>
+
+            <form id="incident-form" onsubmit="handleAnalyzeSubmit(event)">
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="title"><i class="fa-solid fa-heading"></i> Incident Title</label>
+                  <input type="text" id="title" placeholder="e.g. Checkout Service Latency Spike & DB Errors" required>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="severity"><i class="fa-solid fa-triangle-exclamation"></i> Severity</label>
+                  <select id="severity">
+                    <option value="P0">P0 - Critical Outage</option>
+                    <option value="P1" selected>P1 - High Severity</option>
+                    <option value="P2">P2 - Medium Severity</option>
+                    <option value="P3">P3 - Low Impact</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="affected-component"><i class="fa-solid fa-cubes"></i> Affected Component / Microservice</label>
+                <input type="text" id="affected-component" placeholder="e.g. Checkout Microservice, Redis Auth Cache" required>
+              </div>
+
+              <div class="form-group">
+                <label for="description"><i class="fa-solid fa-align-left"></i> Incident Description & Symptoms</label>
+                <textarea id="description" rows="3" placeholder="Describe user symptoms, alert notifications, and observed degradation..." required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="logs"><i class="fa-solid fa-terminal"></i> Logs / Stack Trace / Alert Context</label>
+                <textarea id="logs" rows="4" class="code-font" placeholder="Paste server logs, error stack traces, Datadog alerts..." required></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="btn-submit-analyze">
+                  <i class="fa-solid fa-bolt"></i> Generate Postmortem & Match Hindsight Memories
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Loading Skeleton State -->
+          <div class="card skeleton-card" id="skeleton-loader" style="display: none;">
+            <div class="skeleton-header">
+              <div class="skeleton-line width-30"></div>
+              <div class="skeleton-line width-60"></div>
+            </div>
+            <div class="skeleton-body">
+              <div class="skeleton-box"></div>
+              <div class="skeleton-line width-80"></div>
+              <div class="skeleton-line width-90"></div>
+              <div class="skeleton-line width-70"></div>
+            </div>
+          </div>
+
+          <!-- Postmortem Report Output View -->
+          <div class="report-container" id="report-output" style="display: none;">
+            <div class="card report-card">
+              <div class="report-header">
+                <div>
+                  <div class="report-meta">
+                    <span class="severity-badge" id="report-sev">P0</span>
+                    <span class="incident-id" id="report-id">INC-2026-AUTO</span>
+                    <!-- Improvement Delta Badge -->
+                    <span class="delta-badge" id="delta-badge">🧠 +45% Specificity Delta</span>
+                  </div>
+                  <h1 id="report-title">Postmortem Title</h1>
+                </div>
+
+                <div class="report-actions">
+                  <!-- Hindsight Inspector Drawer Trigger -->
+                  <button class="btn btn-sm btn-inspector" onclick="openInspectorDrawer()">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Inspect Hindsight Memory Context
+                  </button>
+                  <button class="btn btn-sm btn-secondary" onclick="copyReportMarkdown()">
+                    <i class="fa-solid fa-copy"></i> Copy Markdown
+                  </button>
+                  <button class="btn btn-sm btn-outline" onclick="downloadReportMarkdown()">
+                    <i class="fa-solid fa-download"></i> Download Report
+                  </button>
+                </div>
+              </div>
+
+              <!-- Report Sections -->
+              <div class="report-body">
+
+                <!-- Zero Matches Baseline Banner if applicable -->
+                <div class="zero-match-banner" id="zero-match-banner" style="display: none;">
+                  <i class="fa-solid fa-circle-info"></i>
+                  <span><strong>0 Relevant Past Memories Found:</strong> Storing this incident as a new baseline memory in Hindsight.</span>
+                </div>
+
+                <!-- Executive Summary -->
+                <div class="report-section">
+                  <h3><i class="fa-solid fa-compass"></i> Executive Summary</h3>
+                  <p id="report-exec-summary" class="summary-box">Summary text loading...</p>
+
+                  <div class="metrics-grid">
+                    <div class="metric-card">
+                      <span class="metric-label">Estimated Downtime</span>
+                      <span class="metric-val" id="report-downtime">35 mins</span>
+                    </div>
+                    <div class="metric-card">
+                      <span class="metric-label">User Impact</span>
+                      <span class="metric-val" id="report-user-impact">12% active users</span>
+                    </div>
+                    <div class="metric-card">
+                      <span class="metric-label">SLA Impact</span>
+                      <span class="metric-val" id="report-sla-impact">P1 Credit Eligible</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hindsight Memory Matches Banner -->
+                <div class="report-section match-section" id="matched-memories-container">
+                  <h3><i class="fa-solid fa-brain"></i> Hindsight Pattern Matches</h3>
+                  <p class="section-desc">Historical incidents retrieved from persistent vector memory:</p>
+                  <div class="matches-list" id="matches-list">
+                    <!-- Dynamic historical cards -->
+                  </div>
+                </div>
+
+                <!-- Root Cause & 5 Whys -->
+                <div class="report-section">
+                  <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Root Cause Analysis</h3>
+                  <div class="rca-box" id="report-rca">RCA details...</div>
+
+                  <h4><i class="fa-solid fa-diagram-project"></i> The 5 Whys Breakdown</h4>
+                  <ul class="whys-list" id="report-5whys">
+                    <!-- Dynamic 5 whys -->
+                  </ul>
+                </div>
+
+                <!-- Incident Timeline -->
+                <div class="report-section">
+                  <h3><i class="fa-solid fa-clock-rotate-left"></i> Incident Timeline</h3>
+                  <div class="timeline" id="report-timeline">
+                    <!-- Dynamic timeline items -->
+                  </div>
+                </div>
+
+                <!-- Action Items -->
+                <div class="report-section">
+                  <h3><i class="fa-solid fa-list-check"></i> Action Items & Remediation</h3>
+                  <div class="table-responsive">
+                    <table class="action-table">
+                      <thead>
+                        <tr>
+                          <th>Priority</th>
+                          <th>Action Task</th>
+                          <th>Owner</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="report-action-items">
+                        <!-- Dynamic action rows -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Prevention Safeguards -->
+                <div class="report-section">
+                  <h3><i class="fa-solid fa-shield-virus"></i> Preventative Controls & Safeguards</h3>
+                  <ul class="prevention-list" id="report-prevention">
+                    <!-- Dynamic rules -->
+                  </ul>
+                </div>
+
+                <!-- Continuous Learning Loop Feedback Widget -->
+                <div class="report-section learning-loop-card" id="learning-loop-widget">
+                  <h3><i class="fa-solid fa-rotate"></i> Continuous Learning Loop (Commit to Hindsight)</h3>
+                  <p class="section-desc">Verify this resolution to permanently commit it to the Hindsight Memory Bank for future incident agents.</p>
+                  
+                  <div class="feedback-options">
+                    <button class="feedback-btn active" id="btn-fix-yes" onclick="setFeedbackStatus(true)">
+                      <i class="fa-solid fa-circle-check"></i> Yes, Resolution Verified
+                    </button>
+                    <button class="feedback-btn" id="btn-fix-custom" onclick="setFeedbackStatus(false)">
+                      <i class="fa-solid fa-pen-to-square"></i> We applied a custom fix
+                    </button>
+                  </div>
+
+                  <div class="custom-fix-area" id="custom-fix-container" style="display: none;">
+                    <label for="custom-fix-input">Enter Custom Patch / Runbook Command:</label>
+                    <textarea id="custom-fix-input" rows="2" placeholder="e.g. Scaled PgBouncer connection limit to 500 and enabled 3s socket timeouts in production."></textarea>
+                  </div>
+
+                  <button class="btn btn-emerald" onclick="commitResolutionToHindsight()">
+                    <i class="fa-solid fa-floppy-disk"></i> Commit Resolution to Hindsight Memory Bank
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State placeholder before submission -->
+          <div class="empty-state-card" id="empty-state">
+            <div class="empty-icon">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <h3>Ready for Hindsight Incident Analysis</h3>
+            <p>Fill out the incident form or select a quick preset scenario above. Toggle <strong>Hindsight Memory Mode</strong> in the header to compare memory-grounded fixes against generic LLM output.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 2: HINDSIGHT MEMORY EXPLORER -->
+      <section id="tab-explorer" class="tab-content">
+        <div class="explorer-container">
+          <div class="explorer-header card">
+            <div class="search-bar">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="memory-search-input" placeholder="Search past incidents by keyword, tag (e.g. postgresql, oom, dns)..." oninput="handleMemorySearch()">
+            </div>
+            <div class="tags-filter" id="memory-tags-filter">
+              <button class="tag-filter-btn active" onclick="filterByTag('all')">All</button>
+              <button class="tag-filter-btn" onclick="filterByTag('database')">Database</button>
+              <button class="tag-filter-btn" onclick="filterByTag('redis')">Redis</button>
+              <button class="tag-filter-btn" onclick="filterByTag('dns')">DNS</button>
+              <button class="tag-filter-btn" onclick="filterByTag('payment')">Payment</button>
+              <button class="tag-filter-btn" onclick="filterByTag('kafka')">Kafka</button>
+            </div>
+          </div>
+
+          <div class="memory-grid" id="memory-cards-grid">
+            <!-- Dynamic incident memory cards -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: INCIDENT COPILOT -->
+      <section id="tab-copilot" class="tab-content">
+        <div class="copilot-container">
+          <div class="card chat-card">
+            <div class="chat-header">
+              <div class="chat-title">
+                <i class="fa-solid fa-robot gradient-icon"></i>
+                <div>
+                  <h3>Incident Copilot</h3>
+                  <span class="status-sub">AI SRE assistant connected to Hindsight incident history</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-suggestions">
+              <span class="sugg-title">Suggested Prompts:</span>
+              <button class="sugg-btn" onclick="sendPrompt('Draft a Slack announcement for this incident')">📢 Draft Slack Incident Update</button>
+              <button class="sugg-btn" onclick="sendPrompt('How do we prevent DB connection pool exhaustion?')">🛡️ Prevent Connection Exhaustion</button>
+              <button class="sugg-btn" onclick="sendPrompt('What alert thresholds should we configure in Datadog?')">📊 Datadog Alert Thresholds</button>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+              <div class="chat-bubble bot">
+                <div class="bubble-icon"><i class="fa-solid fa-robot"></i></div>
+                <div class="bubble-content">
+                  <p>Hello! I'm <strong>Postmortem AI Copilot</strong>. I have access to your historical incident memory bank and active postmortem analysis. How can I help you remediate or document this incident today?</p>
+                </div>
+              </div>
+            </div>
+
+            <form id="chat-form" class="chat-input-area" onsubmit="handleChatSubmit(event)">
+              <input type="text" id="chat-input" placeholder="Ask questions about incident prevention, configuration fixes, or communications..." required autocomplete="off">
+              <button type="submit" class="btn btn-primary" id="btn-chat-send">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Slide-Over Hindsight Memory Inspector Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeInspectorDrawer()"></div>
+    <aside class="memory-drawer" id="memory-inspector-drawer">
+      <div class="drawer-header">
+        <div>
+          <h3><i class="fa-solid fa-brain gradient-text"></i> Hindsight Memory Inspector</h3>
+          <span class="drawer-sub">Context transparency & vector retrieval proof</span>
+        </div>
+        <button class="drawer-close" onclick="closeInspectorDrawer()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- Search Query & Vector Embedding Preview -->
+        <div class="inspector-box">
+          <h4><i class="fa-solid fa-code"></i> Memory Search Vector Query</h4>
+          <p class="query-text" id="inspector-query-text">Raw text query loading...</p>
+          <div class="vector-preview">
+            <span>Vector Embedding Signature:</span>
+            <code id="inspector-vector-sig">[0.842, 0.129, 0.941, 0.381, 0.712, 0.054, 0.622, 0.490]</code>
+          </div>
+        </div>
+
+        <!-- Extracted Entities -->
+        <div class="inspector-box">
+          <h4><i class="fa-solid fa-tags"></i> Extracted Semantic Entities</h4>
+          <div class="entities-grid" id="inspector-entities">
+            <!-- Dynamic entity badges -->
+          </div>
+        </div>
+
+        <!-- Raw Retrieved Memory Nodes -->
+        <div class="inspector-box">
+          <h4><i class="fa-solid fa-layer-group"></i> Retrieved Memory Nodes (<span id="inspector-nodes-count">0</span>)</h4>
+          <div class="nodes-list" id="inspector-nodes-list">
+            <!-- Dynamic memory nodes -->
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Incident Detail Modal for Hindsight Explorer -->
+    <div class="modal-backdrop" id="incident-modal" onclick="closeIncidentModal(event)">
+      <div class="modal-card card">
+        <div class="modal-header">
+          <div class="report-meta">
+            <span class="severity-badge" id="modal-sev">P0</span>
+            <span class="incident-id" id="modal-id">INC-2025-0000</span>
+          </div>
+          <button class="modal-close" onclick="hideIncidentModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <h2 id="modal-title">Incident Title</h2>
+        <div class="modal-body" id="modal-body">
+          <!-- Dynamic details -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
